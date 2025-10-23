@@ -11,12 +11,12 @@ import SVProgressHUD
 class AddLaptopViewController: UIViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
     
     
-    @IBOutlet weak var laptopImageView: UIImageView!
-    @IBOutlet weak var modelNameTextField: UITextField!
-    @IBOutlet weak var brandTextField: UITextField!
-    @IBOutlet weak var ramTextField: UITextField!
-    @IBOutlet weak var storageTextField: UITextField!
-    @IBOutlet weak var graphicCardTextField: UITextField!
+    @IBOutlet private weak var laptopImageView: UIImageView!
+    @IBOutlet private weak var modelNameTextField: UITextField!
+    @IBOutlet private weak var brandTextField: UITextField!
+    @IBOutlet private weak var ramTextField: UITextField!
+    @IBOutlet private weak var storageTextField: UITextField!
+    @IBOutlet private weak var graphicCardTextField: UITextField!
     
     let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
 
@@ -49,7 +49,7 @@ class AddLaptopViewController: UIViewController, UIImagePickerControllerDelegate
         picker.dismiss(animated: true)
     }
     
-    @IBAction func saveTapped(_ sender: Any) {
+    @IBAction private func saveTapped(_ sender: Any) {
         guard let modelName = modelNameTextField.text, !modelName.isEmpty, let brand = brandTextField.text, !brand.isEmpty, laptopImageView.image != nil else {
             let alert = UIAlertController(title: "Missing Info", message: "Model, Brand and image are required", preferredStyle: .alert)
             

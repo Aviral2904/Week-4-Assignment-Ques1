@@ -6,118 +6,124 @@
 //
 
 import UIKit
-import CoreData
 
-class LaptopListViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, UISearchResultsUpdating {
+class LaptopListViewController: UIViewController{
     
     @IBOutlet private weak var tableView: UITableView!
-    @IBOutlet  private weak var noDataLabel: UILabel!
-    @IBOutlet private weak var searchBarButtonItem: UIBarButtonItem!
+    @IBOutlet private weak var noDataLabel: UILabel!
     
-    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+    private let searchController = UISearchController()
+    private var viewModel = LaptopListViewModel()
     
-    var laptops: [Laptop] = []
-    var filteredLaptops: [Laptop] = []
-    
-    let searchController = UISearchController()
-    
-    
-
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = "Laptops"
-        tableView.delegate = self
-        tableView.dataSource = self
-        
-
+        setupUI()
+        setupViewModel()
+        setupNavbuttons()
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        fetchLaptops()
+        viewModel.fetchLaptops()
     }
     
-    func fetchLaptops() {
+    private func setupUI() {
+        tableView.delegate = self
+        tableView.dataSource = self
         
-        laptops = try! context.fetch(Laptop.fetchRequest())
-        DispatchQueue.main.async {
-            self.updateUI()
+        let nib = UINib(nibName: "LaptopCardCell", bundle: nil)
+        tableView.register(nib, forCellReuseIdentifier: "LaptopCardCell")
+        navigationItem.searchController = searchController
+        searchController.searchResultsUpdater = self
+    }
+    
+    private func setupViewModel() {
+        viewModel.onDataUpdated = { [weak self] in
+            self?.updateUIState()
+            self?.tableView.reloadData()
         }
+    }
+    
+    
+    private func updateUIState() {
+        title = viewModel.navigationTitle
+        noDataLabel.isHidden = !viewModel.shouldShowNoDataLabel
+        tableView.isHidden = viewModel.shouldShowNoDataLabel
+        navigationItem.leftBarButtonItem?.isEnabled = viewModel.shouldEnableSearch
+        
+        
         
     }
     
-    func updateUI(){
+    private func setupNavbuttons() {
+        let addButton = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addTapped))
         
-        if laptops.isEmpty {
-            tableView.isHidden = true
-            noDataLabel.isHidden = false
-            
-            searchBarButtonItem.isEnabled = false
-        } else{
-            tableView.isHidden = false
-            noDataLabel.isHidden = true
-            searchBarButtonItem.isEnabled = true
-        }
-        tableView.reloadData()
+        let searchButton = UIBarButtonItem(barButtonSystemItem: .search, target: self, action: #selector(searchTapped))
+        
+        navigationItem.rightBarButtonItem = addButton
+        navigationItem.leftBarButtonItem = searchButton
     }
     
-    @IBAction func addTapped(_ sender: Any) {
-        let vc = storyboard!.instantiateViewController(withIdentifier: "AddScreen")
+    
+    
+    @objc private func addTapped() {
+        let vc = storyboard!.instantiateViewController(identifier: "AddScreen")
+        
+        
+        
         
         navigationController?.pushViewController(vc, animated: true)
     }
     
-    @IBAction func searchTapped(_ sender: Any) {
-        navigationItem.searchController = searchController
-        searchController.searchResultsUpdater = self
+    @objc private func searchTapped() {
+        
         
         searchController.searchBar.becomeFirstResponder()
     }
     
+    
+    
+}
+
+extension LaptopListViewController: UITableViewDelegate, UITableViewDataSource, UISearchResultsUpdating{
+    
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return searchController.isActive ? filteredLaptops.count : laptops.count
+        return viewModel.displayableLaptops.count
     }
     
+    
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "LaptopCell", for: indexPath) as! LaptopTableViewCell
+        let cell = tableView.dequeueReusableCell(withIdentifier: "LaptopCardCell", for: indexPath) as! LaptopCardCell
         
-        let laptop = searchController.isActive ? filteredLaptops[indexPath.row] : laptops[indexPath.row]
-        
-        cell.modelNameLabel.text = laptop.modelName
-        cell.brandLabel.text = laptop.brand
-        
-        if let imageData = laptop.image{
-            cell.laptopImageView.image = UIImage(data: imageData)
-        }
-        
+        let laptop = viewModel.displayableLaptops[indexPath.row]
+        cell.configure(with: laptop)
         return cell
-        
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let laptop = searchController.isActive ? filteredLaptops[indexPath.row] : laptops[indexPath.row]
+        let laptop = viewModel.displayableLaptops[indexPath.row]
         
-        let vc = storyboard!.instantiateViewController(identifier: "DetailScreen") as! DetailEditLaptopViewController
-        
+        let vc = storyboard!.instantiateViewController(withIdentifier: "DetailScreen") as! DetailEditLaptopViewController
         vc.selectedLaptop = laptop
         navigationController?.pushViewController(vc, animated: true)
     }
     
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return 130
+    }
+    
     func updateSearchResults(for searchController: UISearchController) {
-        guard let text = searchController.searchBar.text, !text.isEmpty else {
-            filteredLaptops = []
-            tableView.reloadData()
-            return
-        }
-        
-        filteredLaptops = laptops.filter {
-            $0.modelName!.lowercased().contains(text.lowercased()) || $0.brand!.lowercased().contains(text.lowercased())}
-        tableView.reloadData()
-        }
-        
-        
+        viewModel.filteredLaptops(with: searchController.searchBar.text ?? "")
+    }
     
-
-    
-
 }
+    
+
+        
+    
+
+    
+
+
+
+

@@ -10,12 +10,12 @@ import SVProgressHUD
 
 class DetailEditLaptopViewController: UIViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
     
-    @IBOutlet weak var laptopImageView: UIImageView!
-    @IBOutlet weak var modelNameTextField: UITextField!
-    @IBOutlet weak var brandTextField: UITextField!
-    @IBOutlet weak var ramTextField: UITextField!
-    @IBOutlet weak var storageTextField: UITextField!
-    @IBOutlet weak var graphicCardTextField: UITextField!
+    @IBOutlet private weak var laptopImageView: UIImageView!
+    @IBOutlet private weak var modelNameTextField: UITextField!
+    @IBOutlet private weak var brandTextField: UITextField!
+    @IBOutlet private weak var ramTextField: UITextField!
+    @IBOutlet private weak var storageTextField: UITextField!
+    @IBOutlet private weak var graphicCardTextField: UITextField!
     
     
     var selectedLaptop: Laptop!
@@ -60,7 +60,7 @@ class DetailEditLaptopViewController: UIViewController, UIImagePickerControllerD
         picker.dismiss(animated: true)
     }
     
-    @IBAction func saveTapped(_ sender: Any) {
+    @IBAction private func saveTapped(_ sender: Any) {
         
         selectedLaptop.modelName = modelNameTextField.text
         selectedLaptop.brand = brandTextField.text
@@ -80,7 +80,7 @@ class DetailEditLaptopViewController: UIViewController, UIImagePickerControllerD
         
     }
     
-    @IBAction func deleteTapped(_ sender: Any) {
+    @IBAction private func deleteTapped(_ sender: Any) {
         let alert = UIAlertController(title: "Delete Laptop", message: "Are you sure?", preferredStyle: .alert)
         
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
